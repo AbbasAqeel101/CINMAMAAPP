@@ -10,6 +10,45 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
-    
+
+    - name: Install XcodeGen
+      run: brew install xcodegen
+
+    - name: Create project.yml
+      run: |
+        cat > project.yml << 'EOF'
+        name: CinemanaApp
+        options:
+          bundleIdPrefix: com.cinemana
+          deploymentTarget:
+            iOS: "16.0"
+        targets:
+          CinemanaApp:
+            type: application
+            platform: iOS
+            sources:
+              - path: .
+                excludes:
+                  - .github/**
+                  - Package.swift
+                  - project.yml
+                  - README.md
+            settings:
+              base:
+                PRODUCT_BUNDLE_IDENTIFIER: com.cinemana.app
+                SWIFT_VERSION: 5.9
+                IPHONEOS_DEPLOYMENT_TARGET: 16.0
+        EOF
+
+    - name: Generate Xcode project
+      run: xcodegen generate
+
     - name: Build
-      run: swift build
+      run: |
+        xcodebuild \
+          -project CinemanaApp.xcodeproj \
+          -scheme CinemanaApp \
+          -sdk iphoneos \
+          -configuration Release \
+          CODE_SIGNING_ALLOWED=NO \
+          build
