@@ -1,22 +1,23 @@
 import SwiftUI
-
+ 
 struct SearchView: View {
     @ObservedObject var vm: HomeViewModel
     @Environment(\.dismiss) private var dismiss
-
+    @State private var searchQuery: String = ""
+ 
     let columns = [
         GridItem(.flexible()),
         GridItem(.flexible()),
         GridItem(.flexible())
     ]
-
+ 
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.black.ignoresSafeArea()
-
+ 
                 VStack {
-                    if vm.searchQuery.isEmpty {
+                    if searchQuery.isEmpty {
                         VStack(spacing: 12) {
                             Spacer()
                             Image(systemName: "magnifyingglass")
@@ -32,7 +33,7 @@ struct SearchView: View {
                             Image(systemName: "film.slash")
                                 .font(.system(size: 50))
                                 .foregroundColor(.gray.opacity(0.5))
-                            Text("لا توجد نتائج لـ \"\(vm.searchQuery)\"")
+                            Text("لا توجد نتائج لـ \"\(searchQuery)\"")
                                 .foregroundColor(.gray)
                             Spacer()
                         }
@@ -52,7 +53,10 @@ struct SearchView: View {
                     }
                 }
             }
-            .searchable(text: $vm.searchQuery, prompt: "بحث...")
+            .searchable(text: $searchQuery, prompt: "بحث...")
+            .onChange(of: searchQuery) { newValue in
+                vm.searchQuery = newValue
+            }
             .navigationTitle("البحث")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -65,3 +69,4 @@ struct SearchView: View {
         }
     }
 }
+ 
