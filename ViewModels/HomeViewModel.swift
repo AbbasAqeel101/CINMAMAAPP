@@ -12,6 +12,9 @@ class HomeViewModel: ObservableObject {
     private let network = NetworkManager.shared
  
     init() {
+        // أظهر البيانات التجريبية فوراً
+        loadFallback()
+        // ثم حاول تحميل البيانات الحقيقية
         loadHome()
         setupSearch()
     }
@@ -21,25 +24,25 @@ class HomeViewModel: ObservableObject {
         network.fetchHome()
             .sink(receiveCompletion: { [weak self] completion in
                 self?.isLoading = false
-                if case .failure = completion {
-                    self?.loadFallback()
-                }
             }, receiveValue: { [weak self] response in
                 self?.isLoading = false
                 if let sections = response.data?.sections, !sections.isEmpty {
-                    self?.categories = sections.compactMap { section in
-                        guard let title = section.title, let items = section.items, !items.isEmpty else { return nil }
+                    let cats = sections.compactMap { section -> APICategory? in
+                        guard let title = section.title,
+                              let items = section.items,
+                              !items.isEmpty else { return nil }
                         return APICategory(title: title, items: items)
                     }
-                    self?.featuredMedia = response.data?.banners?.first ?? self?.categories.first?.items.first
-                } else {
-                    self?.loadFallback()
+                    if !cats.isEmpty {
+                        self?.categories = cats
+                        self?.featuredMedia = response.data?.banners?.first ?? cats.first?.items.first
+                    }
                 }
             })
             .store(in: &cancellables)
     }
  
-    private func loadFallback() {
+    func loadFallback() {
         let sampleMedia = [
             APIMedia(id: "1", title: "Inception", titleAr: "بداية", cover: "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/s3TBrRGB1iav7gFOCNx3H31MoES.jpg", description: "فيلم خيال علمي رائع", year: "2010", score: 8.8, type: "movie", genres: ["خيال علمي", "إثارة"], playUrl: nil),
             APIMedia(id: "2", title: "The Dark Knight", titleAr: "فارس الظلام", cover: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/hkBaDkMWbLaf8B1lsWsKX7Ew3Xq.jpg", description: "باتمان يواجه الجوكر", year: "2008", score: 9.0, type: "movie", genres: ["أكشن", "جريمة"], playUrl: nil),
@@ -48,7 +51,6 @@ class HomeViewModel: ObservableObject {
             APIMedia(id: "5", title: "Game of Thrones", titleAr: "صراع العروش", cover: "https://image.tmdb.org/t/p/w500/u3bZgnGQ9T01sWNhyveQz0wH0Hl.jpg", backdrop: nil, description: "معركة العروش والممالك", year: "2011", score: 9.2, type: "series", genres: ["فانتازيا", "دراما"], playUrl: nil),
             APIMedia(id: "6", title: "Avengers: Endgame", titleAr: "نهاية اللعبة", cover: "https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg", backdrop: nil, description: "المعركة النهائية لإنقاذ الكون", year: "2019", score: 8.4, type: "movie", genres: ["أكشن", "مغامرة"], playUrl: nil),
         ]
- 
         self.featuredMedia = sampleMedia.first
         self.categories = [
             APICategory(title: "🔥 الأكثر مشاهدة", items: sampleMedia),
