@@ -14,12 +14,9 @@ struct HomeView: View {
                 } else {
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 0) {
-                            // Featured Banner
                             if let featured = vm.featuredMedia {
                                 FeaturedBannerView(media: featured)
                             }
-
-                            // Categories
                             VStack(spacing: 24) {
                                 ForEach(vm.categories) { category in
                                     CategoryRowView(category: category)
@@ -36,23 +33,15 @@ struct HomeView: View {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Text("سينمانا")
                         .font(.system(size: 24, weight: .bold))
-                        .foregroundStyle(
-                            LinearGradient(colors: [.red, .orange], startPoint: .leading, endPoint: .trailing)
-                        )
+                        .foregroundStyle(LinearGradient(colors: [.red, .orange], startPoint: .leading, endPoint: .trailing))
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack(spacing: 16) {
                         Button { showSearch = true } label: {
-                            Image(systemName: "magnifyingglass")
-                                .foregroundColor(.white)
-                                .font(.system(size: 18))
+                            Image(systemName: "magnifyingglass").foregroundColor(.white)
                         }
-                        NavigationLink {
-                            ProfileView()
-                        } label: {
-                            Image(systemName: "person.circle.fill")
-                                .foregroundColor(.white)
-                                .font(.system(size: 20))
+                        NavigationLink { ProfileView() } label: {
+                            Image(systemName: "person.circle.fill").foregroundColor(.white)
                         }
                     }
                 }
@@ -65,34 +54,24 @@ struct HomeView: View {
     }
 }
 
-// MARK: - Featured Banner
 struct FeaturedBannerView: View {
-    let media: Media
+    let media: APIMedia
     @State private var appear = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Backdrop Image
             AsyncImage(url: media.backdropURL ?? media.posterURL) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
+                image.resizable().aspectRatio(contentMode: .fill)
             } placeholder: {
                 Rectangle().fill(Color.gray.opacity(0.3))
             }
             .frame(height: 500)
             .clipped()
 
-            // Gradient overlay
-            LinearGradient(
-                colors: [.clear, .black.opacity(0.3), .black],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            LinearGradient(colors: [.clear, .black.opacity(0.3), .black], startPoint: .top, endPoint: .bottom)
 
-            // Info
             VStack(spacing: 12) {
-                Text(media.titleAr ?? media.title)
+                Text(media.displayTitle)
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
@@ -104,14 +83,10 @@ struct FeaturedBannerView: View {
                 }
 
                 HStack(spacing: 12) {
-                    // زر مشاهدة
-                    NavigationLink {
-                        PlayerView(media: media)
-                    } label: {
+                    NavigationLink { PlayerView(media: media) } label: {
                         HStack(spacing: 6) {
                             Image(systemName: "play.fill")
-                            Text("مشاهدة")
-                                .fontWeight(.semibold)
+                            Text("مشاهدة").fontWeight(.semibold)
                         }
                         .foregroundColor(.black)
                         .frame(width: 130, height: 44)
@@ -119,14 +94,10 @@ struct FeaturedBannerView: View {
                         .cornerRadius(8)
                     }
 
-                    // زر تفاصيل
-                    NavigationLink {
-                        DetailView(media: media)
-                    } label: {
+                    NavigationLink { DetailView(media: media) } label: {
                         HStack(spacing: 6) {
                             Image(systemName: "info.circle")
-                            Text("التفاصيل")
-                                .fontWeight(.semibold)
+                            Text("التفاصيل").fontWeight(.semibold)
                         }
                         .foregroundColor(.white)
                         .frame(width: 130, height: 44)
@@ -141,15 +112,12 @@ struct FeaturedBannerView: View {
             .offset(y: appear ? 0 : 20)
         }
         .frame(height: 500)
-        .onAppear {
-            withAnimation(.easeOut(duration: 0.6)) { appear = true }
-        }
+        .onAppear { withAnimation(.easeOut(duration: 0.6)) { appear = true } }
     }
 }
 
-// MARK: - Category Row
 struct CategoryRowView: View {
-    let category: Category
+    let category: APICategory
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -161,9 +129,7 @@ struct CategoryRowView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     ForEach(category.items) { media in
-                        NavigationLink {
-                            DetailView(media: media)
-                        } label: {
+                        NavigationLink { DetailView(media: media) } label: {
                             MediaCardView(media: media)
                         }
                     }
@@ -174,48 +140,36 @@ struct CategoryRowView: View {
     }
 }
 
-// MARK: - Media Card
 struct MediaCardView: View {
-    let media: Media
+    let media: APIMedia
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             ZStack(alignment: .topTrailing) {
                 AsyncImage(url: media.posterURL) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
+                    image.resizable().aspectRatio(contentMode: .fill)
                 } placeholder: {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .overlay(
-                            Image(systemName: "film")
-                                .foregroundColor(.gray)
-                                .font(.system(size: 30))
-                        )
+                    Rectangle().fill(Color.gray.opacity(0.3))
+                        .overlay(Image(systemName: "film").foregroundColor(.gray).font(.system(size: 30)))
                 }
                 .frame(width: 120, height: 180)
                 .clipped()
                 .cornerRadius(10)
 
-                // Rating badge
                 if let rating = media.rating {
                     HStack(spacing: 2) {
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 9))
-                        Text(String(format: "%.1f", rating))
-                            .font(.system(size: 10, weight: .bold))
+                        Image(systemName: "star.fill").font(.system(size: 9))
+                        Text(String(format: "%.1f", rating)).font(.system(size: 10, weight: .bold))
                     }
                     .foregroundColor(.white)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
+                    .padding(.horizontal, 6).padding(.vertical, 3)
                     .background(Color.black.opacity(0.7))
                     .cornerRadius(6)
                     .padding(6)
                 }
             }
 
-            Text(media.titleAr ?? media.title)
+            Text(media.displayTitle)
                 .font(.system(size: 12, weight: .medium))
                 .foregroundColor(.white)
                 .lineLimit(2)
@@ -225,35 +179,19 @@ struct MediaCardView: View {
     }
 }
 
-// MARK: - Loading View
 struct LoadingView: View {
     @State private var animate = false
-
     var body: some View {
         VStack(spacing: 20) {
             Spacer()
             Circle()
                 .stroke(lineWidth: 3)
                 .foregroundColor(.red.opacity(0.3))
-                .overlay(
-                    Circle()
-                        .trim(from: 0, to: 0.7)
-                        .stroke(Color.red, lineWidth: 3)
-                        .rotationEffect(.degrees(animate ? 360 : 0))
-                )
+                .overlay(Circle().trim(from: 0, to: 0.7).stroke(Color.red, lineWidth: 3).rotationEffect(.degrees(animate ? 360 : 0)))
                 .frame(width: 50, height: 50)
-                .onAppear {
-                    withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
-                        animate = true
-                    }
-                }
-            Text("جاري التحميل...")
-                .foregroundColor(.gray)
+                .onAppear { withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) { animate = true } }
+            Text("جاري التحميل...").foregroundColor(.gray)
             Spacer()
         }
     }
-}
-
-#Preview {
-    HomeView()
 }
