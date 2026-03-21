@@ -11,29 +11,31 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Archive
+    - name: Build & Package IPA
       run: |
         xcodebuild \
           -project CinemanaApp.xcodeproj \
           -scheme CinemanaApp \
           -sdk iphoneos \
           -configuration Release \
-          -archivePath $PWD/build/CinemanaApp.xcarchive \
+          -derivedDataPath DerivedData \
           CODE_SIGNING_ALLOWED=NO \
           CODE_SIGNING_REQUIRED=NO \
-          archive
+          CODE_SIGN_IDENTITY="" \
+          build
 
-    - name: Export IPA
-      run: |
-        mkdir -p $PWD/build/ipa/Payload
-        cp -r $PWD/build/CinemanaApp.xcarchive/Products/Applications/CinemanaApp.app \
-              $PWD/build/ipa/Payload/CinemanaApp.app
-        cd $PWD/build/ipa
-        zip -r ../CinemanaApp.ipa Payload
+        APP_PATH=$(find DerivedData -name "*.app" | head -1)
+        echo "Found app at: $APP_PATH"
+        ls -lh "$APP_PATH"
+
+        mkdir -p Payload
+        cp -r "$APP_PATH" Payload/
+        zip -r CinemanaApp.ipa Payload
+        ls -lh CinemanaApp.ipa
 
     - name: Upload IPA
       uses: actions/upload-artifact@v4
       with:
         name: CinemanaApp-IPA
-        path: build/CinemanaApp.ipa
+        path: CinemanaApp.ipa
         retention-days: 7
