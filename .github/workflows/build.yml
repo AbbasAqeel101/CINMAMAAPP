@@ -13,7 +13,7 @@ jobs:
 
     - name: Build & Archive
       run: |
-        # بناء الأرشيف لضمان تجميع كل الملفات
+        # بناء الأرشيف (هذا يجمع كل ملفات الكود والصور بشكل حقيقي)
         xcodebuild archive \
           -project CinemanaApp.xcodeproj \
           -scheme CinemanaApp \
@@ -26,16 +26,16 @@ jobs:
 
     - name: Package IPA
       run: |
-        # إنشاء هيكلية الـ Payload المتعارف عليها في iOS
+        # إنشاء المجلد الأساسي للتطبيق
         mkdir -p Payload
         
-        # نسخ التطبيق الفعلي من داخل الأرشيف المترجم
+        # نسخ التطبيق الفعلي المترجم من داخل الأرشيف
         cp -r ./build/CinemanaApp.xcarchive/Products/Applications/*.app Payload/
         
-        # ضغط المجلد لإنتاج ملف IPA حقيقي
+        # ضغط المجلد لإنتاج الـ IPA
         zip -r CinemanaApp.ipa Payload
         
-        # التحقق من الحجم (يجب أن يكون بالميغابايت الآن)
+        # للتأكد من الحجم في سجلات GitHub (يجب أن يكون بالميغابايت)
         ls -lh CinemanaApp.ipa
 
     - name: Upload IPA
