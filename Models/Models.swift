@@ -19,14 +19,42 @@ struct Media: Identifiable, Codable, Hashable {
         case series = "series"
     }
 
+    // 🔥 حل التشوه 1: دمج الرابط الأساسي مع المسار
     var posterURL: URL? {
         guard let path = posterPath else { return nil }
-        return URL(string: path)
+        
+        // إذا كان الرابط يأتي كاملاً من الـ API استخدمه مباشرة
+        if path.contains("http") {
+            return URL(string: path)
+        }
+        
+        // إذا كان الرابط يحتاج سيرفر (مثل TMDB)، أضفه هنا، مثال:
+        // let baseURL = "https://image.tmdb.org/t/p/w500"
+        // return URL(string: baseURL + path)
+        
+        return URL(string: path) 
     }
 
     var backdropURL: URL? {
         guard let path = backdropPath else { return nil }
+        if path.contains("http") { return URL(string: path) }
         return URL(string: path)
+    }
+    
+    // 🔥 حل التشوه 2: معالجة القيم الفارغة برمجياً لتأمين الـ UI
+    var displayTitle: String {
+        return titleAr ?? title // يعرض العربي إذا وجد، وإلا الإنجليزي
+    }
+    
+    var displayOverview: String {
+        return overview ?? "الوصف غير متاح حالياً لهذا العمل."
+    }
+    
+    var ratingString: String {
+        if let rating = rating {
+            return String(format: "%.1f ★", rating)
+        }
+        return "N/A"
     }
 }
 

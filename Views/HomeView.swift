@@ -14,18 +14,18 @@ struct HomeView: View {
                 } else {
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 0) {
-                            // Featured Banner
+                            // 1. Featured Banner (معدل لثبات الأبعاد)
                             if let featured = vm.featuredMedia {
                                 FeaturedBannerView(media: featured)
                             }
 
-                            // Categories
-                            VStack(spacing: 24) {
+                            // 2. Categories (توزيع المسافات بانتظام)
+                            VStack(spacing: 30) {
                                 ForEach(vm.categories) { category in
                                     CategoryRowView(category: category)
                                 }
                             }
-                            .padding(.top, 16)
+                            .padding(.top, 20)
                             .padding(.bottom, 100)
                         }
                     }
@@ -35,24 +35,22 @@ struct HomeView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Text("سينمانا")
-                        .font(.system(size: 24, weight: .bold))
+                        .font(.system(size: 26, weight: .black))
                         .foregroundStyle(
                             LinearGradient(colors: [.red, .orange], startPoint: .leading, endPoint: .trailing)
                         )
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack(spacing: 16) {
+                    HStack(spacing: 20) {
                         Button { showSearch = true } label: {
                             Image(systemName: "magnifyingglass")
                                 .foregroundColor(.white)
-                                .font(.system(size: 18))
+                                .font(.system(size: 20, weight: .bold))
                         }
-                        NavigationLink {
-                            ProfileView()
-                        } label: {
+                        NavigationLink(destination: ProfileView()) {
                             Image(systemName: "person.circle.fill")
                                 .foregroundColor(.white)
-                                .font(.system(size: 20))
+                                .font(.system(size: 22))
                         }
                     }
                 }
@@ -65,84 +63,90 @@ struct HomeView: View {
     }
 }
 
-// MARK: - Featured Banner
+// MARK: - Featured Banner (تم تحسين معالجة الصور والنصوص)
 struct FeaturedBannerView: View {
     let media: Media
     @State private var appear = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Backdrop Image
-            AsyncImage(url: media.backdropURL ?? media.posterURL) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Rectangle().fill(Color.gray.opacity(0.3))
+            // Backdrop Image مع معالجة حالات التحميل
+            AsyncImage(url: media.backdropURL ?? media.posterURL) { phase in
+                if let image = phase.image {
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } else {
+                    Rectangle().fill(Color.gray.opacity(0.2))
+                }
             }
-            .frame(height: 500)
+            .frame(height: 480)
+            .frame(maxWidth: .infinity)
             .clipped()
 
-            // Gradient overlay
+            // تدرج لوني احترافي لضمان وضوح النصوص
             LinearGradient(
-                colors: [.clear, .black.opacity(0.3), .black],
+                stops: [
+                    .init(color: .clear, location: 0.4),
+                    .init(color: .black.opacity(0.7), location: 0.7),
+                    .init(color: .black, location: 1.0)
+                ],
                 startPoint: .top,
                 endPoint: .bottom
             )
 
-            // Info
-            VStack(spacing: 12) {
+            // تفاصيل العمل
+            VStack(spacing: 16) {
                 Text(media.titleAr ?? media.title)
-                    .font(.system(size: 32, weight: .bold))
+                    .font(.system(size: 30, weight: .black))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                    .shadow(radius: 5)
 
                 if let genres = media.genres {
                     Text(genres.joined(separator: " • "))
-                        .font(.system(size: 13))
+                        .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.gray)
                 }
 
-                HStack(spacing: 12) {
-                    // زر مشاهدة
-                    NavigationLink {
-                        PlayerView(media: media)
-                    } label: {
-                        HStack(spacing: 6) {
+                HStack(spacing: 15) {
+                    // زر المشاهدة
+                    NavigationLink(destination: PlayerView(media: media)) {
+                        HStack {
                             Image(systemName: "play.fill")
                             Text("مشاهدة")
-                                .fontWeight(.semibold)
                         }
+                        .font(.headline)
                         .foregroundColor(.black)
-                        .frame(width: 130, height: 44)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
                         .background(Color.white)
-                        .cornerRadius(8)
+                        .cornerRadius(10)
                     }
 
-                    // زر تفاصيل
-                    NavigationLink {
-                        DetailView(media: media)
-                    } label: {
-                        HStack(spacing: 6) {
+                    // زر التفاصيل
+                    NavigationLink(destination: DetailView(media: media)) {
+                        HStack {
                             Image(systemName: "info.circle")
                             Text("التفاصيل")
-                                .fontWeight(.semibold)
                         }
+                        .font(.headline)
                         .foregroundColor(.white)
-                        .frame(width: 130, height: 44)
-                        .background(Color.gray.opacity(0.5))
-                        .cornerRadius(8)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(Color.gray.opacity(0.4))
+                        .cornerRadius(10)
                     }
                 }
+                .padding(.horizontal, 30)
             }
-            .padding(.horizontal, 20)
             .padding(.bottom, 30)
             .opacity(appear ? 1 : 0)
             .offset(y: appear ? 0 : 20)
         }
-        .frame(height: 500)
         .onAppear {
-            withAnimation(.easeOut(duration: 0.6)) { appear = true }
+            withAnimation(.easeOut(duration: 0.8)) { appear = true }
         }
     }
 }
@@ -152,18 +156,16 @@ struct CategoryRowView: View {
     let category: Category
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 15) {
             Text(category.title)
-                .font(.system(size: 18, weight: .bold))
+                .font(.system(size: 20, weight: .bold))
                 .foregroundColor(.white)
                 .padding(.horizontal, 16)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
+                HStack(spacing: 15) {
                     ForEach(category.items) { media in
-                        NavigationLink {
-                            DetailView(media: media)
-                        } label: {
+                        NavigationLink(destination: DetailView(media: media)) {
                             MediaCardView(media: media)
                         }
                     }
@@ -174,54 +176,55 @@ struct CategoryRowView: View {
     }
 }
 
-// MARK: - Media Card
+// MARK: - Media Card (الحل النهائي لمشكلة التشويه)
 struct MediaCardView: View {
     let media: Media
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             ZStack(alignment: .topTrailing) {
-                AsyncImage(url: media.posterURL) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .overlay(
-                            Image(systemName: "film")
-                                .foregroundColor(.gray)
-                                .font(.system(size: 30))
-                        )
-                }
-                .frame(width: 120, height: 180)
-                .clipped()
-                .cornerRadius(10)
-
-                // Rating badge
-                if let rating = media.rating {
-                    HStack(spacing: 2) {
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 9))
-                        Text(String(format: "%.1f", rating))
-                            .font(.system(size: 10, weight: .bold))
+                // تثبيت أبعاد الصورة مهما كان المصدر
+                AsyncImage(url: media.posterURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    case .failure, .empty:
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.2))
+                            .overlay(Image(systemName: "film").foregroundColor(.gray))
+                    @unknown default:
+                        EmptyView()
                     }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
-                    .background(Color.black.opacity(0.7))
-                    .cornerRadius(6)
-                    .padding(6)
+                }
+                .frame(width: 115, height: 170)
+                .clipped()
+                .cornerRadius(12)
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.1), lineWidth: 0.5))
+
+                // التقييم فوق الصورة
+                if let rating = media.rating, rating > 0 {
+                    Text(String(format: "%.1f", rating))
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(Color.orange)
+                        .cornerRadius(6)
+                        .padding(6)
                 }
             }
 
+            // توحيد ارتفاع منطقة النص لمنع تذبذب الأسطر
             Text(media.titleAr ?? media.title)
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.white)
                 .lineLimit(2)
-                .frame(width: 120, alignment: .leading)
+                .multilineTextAlignment(.leading)
+                .frame(width: 115, height: 35, alignment: .topLeading)
         }
-        .frame(width: 120)
+        .frame(width: 115)
     }
 }
 
@@ -234,26 +237,24 @@ struct LoadingView: View {
             Spacer()
             Circle()
                 .stroke(lineWidth: 3)
-                .foregroundColor(.red.opacity(0.3))
+                .foregroundColor(.red.opacity(0.2))
                 .overlay(
                     Circle()
                         .trim(from: 0, to: 0.7)
-                        .stroke(Color.red, lineWidth: 3)
+                        .stroke(LinearGradient(colors: [.red, .orange], startPoint: .top, endPoint: .bottom), lineWidth: 3)
                         .rotationEffect(.degrees(animate ? 360 : 0))
                 )
-                .frame(width: 50, height: 50)
+                .frame(width: 45, height: 45)
                 .onAppear {
                     withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
                         animate = true
                     }
                 }
-            Text("جاري التحميل...")
+            Text("يتم تجهيز السينما...")
+                .font(.system(size: 14, weight: .medium))
                 .foregroundColor(.gray)
             Spacer()
         }
+        .frame(maxWidth: .infinity)
     }
-}
-
-#Preview {
-    HomeView()
 }
